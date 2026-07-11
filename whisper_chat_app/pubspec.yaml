@@ -1,0 +1,51 @@
+name: whisper_chat_app
+description: A secure, end-to-end encrypted chat and WebRTC calling application built with Firebase.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+
+  # Firebase
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+
+  # Local Encrypted Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.0.0
+
+  # Cryptography (E2EE)
+  cryptography: ^2.5.0
+
+  # WebRTC (P2P Calls)
+  flutter_webrtc: ^0.10.4
+
+  # Voice Notes
+  record: ^5.0.4
+  audioplayers: ^6.0.0
+  path_provider: ^2.1.2
+
+  # Utilities
+  uuid: ^4.3.3
+  intl: ^0.19.0
+  permission_handler: ^11.3.0
+  provider: ^6.1.1
+  phone_numbers_parser: ^8.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

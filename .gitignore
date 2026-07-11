@@ -1,0 +1,52 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom
+.buildlog
+.history
+.project
+.vscode/
+
+# Node/Backend
+whisper_chat_server/node_modules/
+whisper_chat_server/dist/
+whisper_chat_server/uploads/
+whisper_chat_server/.env
+
+# Flutter/App
+whisper_chat_app/.dart_tool/
+whisper_chat_app/.flutter-plugins
+whisper_chat_app/.flutter-plugins-dependencies
+whisper_chat_app/.packages
+whisper_chat_app/.pub-cache/
+whisper_chat_app/.pub/
+whisper_chat_app/build/
+
+# Android-specific
+whisper_chat_app/android/app/local.properties
+whisper_chat_app/android/app/flutter-plugins.gradle
+whisper_chat_app/android/.gradle/
+whisper_chat_app/android/local.properties
+
+# iOS-specific
+whisper_chat_app/ios/.symlinks/
+whisper_chat_app/ios/Pods/
+whisper_chat_app/ios/Runner/GeneratedPluginRegistrant.*
+whisper_chat_app/ios/Flutter/Flutter.podspec
+whisper_chat_app/ios/Flutter/Generated.xcconfig
+whisper_chat_app/ios/Flutter/flutter_export_environment.sh
+
+# Web-specific
+whisper_chat_app/web/manifest.json.tmp
+
+# Credentials & Secrets (Crucial for security!)
+whisper_chat_app/android/app/google-services.json
+whisper_chat_app/ios/Runner/GoogleService-Info.plist
+whisper_chat_app/lib/firebase_options.dart
+*.jks
+*.keystore
+*.p12
+*.pem
