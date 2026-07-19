@@ -17,6 +17,13 @@ class SecureStorageService {
   static const String _keyPrivateKey    = 'private_key';
   static const String _keyPublicKey     = 'public_key';
   static const String _keyHiveKey       = 'hive_encryption_key';
+  static const String _keyDisplayName   = 'display_name';
+
+  // Display Name
+  Future<void> saveDisplayName(String name) async =>
+      _secureStorage.write(key: _keyDisplayName, value: name);
+  Future<String?> getDisplayName() async =>
+      _secureStorage.read(key: _keyDisplayName);
 
   // Phone Number (e.g. "+919876543210")
   Future<void> savePhoneNumber(String phone) async =>
@@ -56,6 +63,7 @@ class SecureStorageService {
     await _secureStorage.delete(key: _keyUid);
     await _secureStorage.delete(key: _keyPrivateKey);
     await _secureStorage.delete(key: _keyPublicKey);
+    await _secureStorage.delete(key: _keyDisplayName);
     // NOTE: We intentionally keep the Hive key so local data remains accessible
     // even after changing accounts (can clear separately if desired).
   }

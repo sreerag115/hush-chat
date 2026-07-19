@@ -45,6 +45,8 @@ class DatabaseService {
         .where((t) => t.isConnected && !t.isArchived)
         .toList()
       ..sort((a, b) {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
         final aT = a.lastMessage?.timestamp ?? 0;
         final bT = b.lastMessage?.timestamp ?? 0;
         return bT.compareTo(aT);
@@ -68,6 +70,14 @@ class DatabaseService {
     final thread = await getThread(contactUid);
     if (thread != null) {
       final updated = thread.copyWith(isArchived: !thread.isArchived);
+      await saveOrUpdateThread(updated);
+    }
+  }
+
+  Future<void> togglePinThread(String contactUid) async {
+    final thread = await getThread(contactUid);
+    if (thread != null) {
+      final updated = thread.copyWith(isPinned: !thread.isPinned);
       await saveOrUpdateThread(updated);
     }
   }

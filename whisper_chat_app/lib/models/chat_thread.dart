@@ -14,6 +14,7 @@ class ChatThread {
   final bool isOnline;
   final int lastSeen;
   final bool isArchived;
+  final bool isPinned;
 
   ChatThread({
     required this.contactUid,
@@ -25,6 +26,7 @@ class ChatThread {
     this.isOnline = false,
     this.lastSeen = 0,
     this.isArchived = false,
+    this.isPinned = false,
   });
 
   bool get isConnected => connectionStatus == 'connected';
@@ -41,6 +43,7 @@ class ChatThread {
     bool? isOnline,
     int? lastSeen,
     bool? isArchived,
+    bool? isPinned,
   }) {
     return ChatThread(
       contactUid: contactUid ?? this.contactUid,
@@ -52,6 +55,7 @@ class ChatThread {
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
       isArchived: isArchived ?? this.isArchived,
+      isPinned: isPinned ?? this.isPinned,
     );
   }
 
@@ -66,6 +70,7 @@ class ChatThread {
       'isOnline': isOnline,
       'lastSeen': lastSeen,
       'isArchived': isArchived,
+      'isPinned': isPinned,
     };
   }
 
@@ -82,6 +87,7 @@ class ChatThread {
       isOnline: map['isOnline'] as bool? ?? false,
       lastSeen: map['lastSeen'] as int? ?? 0,
       isArchived: map['isArchived'] as bool? ?? false,
+      isPinned: map['isPinned'] as bool? ?? false,
     );
   }
 }

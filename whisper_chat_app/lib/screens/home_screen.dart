@@ -7,10 +7,12 @@ import '../services/database_service.dart';
 import '../services/firebase_service.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
+import '../services/secure_storage_service.dart';
 import 'contacts_screen.dart';
 import 'new_group_screen.dart';
 import 'archived_chats_screen.dart';
 import 'starred_messages_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Map<String, dynamic>> _requests = [];
   bool _isLoading = true;
   String _myPhone = '';
+  String _displayName = 'User';
 
   @override
   void initState() {
@@ -53,6 +56,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Future<void> _loadData() async {
     final firebase = Provider.of<FirebaseService>(context, listen: false);
     final phone = firebase.currentUser?.phoneNumber ?? '';
+    final secure = SecureStorageService();
+    final name = await secure.getDisplayName() ?? 'User';
 
     final chats = await _localDb.getConnectedThreads();
 
@@ -60,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       setState(() {
         _chats = chats;
         _myPhone = phone;
+        _displayName = name;
         _isLoading = false;
       });
     }
@@ -145,6 +151,63 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _showProfileEditorDialog() async {
+    final secure = SecureStorageService();
+    final currentName = await secure.getDisplayName() ?? 'User';
+    final ctrl = TextEditingController(text: currentName);
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF171B30),
+        title: const Text('Edit Profile Name', style: TextStyle(fontFamily: 'serif', color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Specify a name so others can identify you.',
+              style: TextStyle(color: Color(0xFF8FA1AE), fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ctrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Display Name',
+                hintText: 'Enter your name...',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF8FA1AE))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD8B48C),
+              foregroundColor: const Color(0xFF0E1120),
+              elevation: 0,
+            ),
+            onPressed: () async {
+              final newName = ctrl.text.trim();
+              if (newName.isNotEmpty) {
+                final firebase = Provider.of<FirebaseService>(context, listen: false);
+                await firebase.updateProfileName(newName);
+                _loadData();
+              }
+              if (mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -268,9 +331,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'WhisperChat',
-                          style: TextStyle(
+                        Text(
+                          _displayName,
+                          style: const TextStyle(
                             fontFamily: 'serif',
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -278,22 +341,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Text(
-                              _myPhone,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF8FA1AE),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showProfileEditorDialog();
+                          },
+                          child: Row(
+                            children: [
+                              Text(
+                                _myPhone,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF8FA1AE),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: Color(0xFFD8B48C),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.edit_outlined,
+                                size: 14,
+                                color: Color(0xFFD8B48C),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -336,7 +405,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const StarredMessagesScreen()));
               },
             ),
-            _buildDrawerItem(Icons.settings_outlined, 'Settings'),
+            _buildDrawerItem(
+              Icons.settings_outlined,
+              'Settings',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())).then((_) => _loadData());
+              },
+            ),
             _buildDrawerItem(Icons.lock_outline, 'Privacy & Security'),
             _buildDrawerItem(Icons.help_outline, 'Help & Support'),
             _buildDrawerItem(Icons.info_outline, 'About WhisperChat'),
@@ -493,9 +569,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              title: Text(
-                thread.contactPhone,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
+              title: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      thread.contactPhone,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
+                    ),
+                  ),
+                  if (thread.isPinned) ...[
+                    const Icon(Icons.push_pin, color: Color(0xFFD8B48C), size: 14),
+                  ],
+                ],
               ),
               subtitle: Row(
                 children: [
@@ -542,9 +627,85 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ).then((_) => _loadData());
                 }
               },
+              onLongPress: () => _showChatOptions(thread),
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showChatOptions(ChatThread thread) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF171B30),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                thread.isPinned ? Icons.pin_end : Icons.push_pin,
+                color: const Color(0xFFD8B48C),
+              ),
+              title: Text(
+                thread.isPinned ? 'Unpin Chat' : 'Pin Chat to Top',
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await _localDb.togglePinThread(thread.contactUid);
+                _loadData();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.archive_outlined, color: Color(0xFF8FA1AE)),
+              title: const Text('Archive Chat', style: TextStyle(color: Colors.white)),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await _localDb.toggleArchiveThread(thread.contactUid);
+                _loadData();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              title: const Text('Delete Chat', style: TextStyle(color: Colors.redAccent)),
+              onTap: () async {
+                Navigator.pop(ctx);
+                _confirmDeleteChat(thread.contactUid);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmDeleteChat(String contactUid) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF171B30),
+        title: const Text('Delete Chat', style: TextStyle(fontFamily: 'serif', color: Colors.white)),
+        content: const Text('Are you sure you want to delete this chat? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF8FA1AE))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await _localDb.deleteThread(contactUid);
+              _loadData();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

@@ -88,6 +88,16 @@ class FirebaseService extends ChangeNotifier {
     await _secure.saveUid(uid);
   }
 
+  Future<void> updateProfileName(String displayName) async {
+    final uid = myUid;
+    if (uid == null) return;
+    await _db.collection('users').doc(uid).update({
+      'displayName': displayName,
+    });
+    await _secure.saveDisplayName(displayName);
+    notifyListeners();
+  }
+
   Future<void> setPresence(bool isOnline) async {
     if (myUid == null) return;
     await _db.collection('users').doc(myUid).update({
