@@ -117,61 +117,68 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF020617), Color(0xFF0F172A), Color(0xFF1E1B4B)],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(30),
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
+      backgroundColor: const Color(0xFF0E1120),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo
+              ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 110,
+                  height: 110,
+                  fit: BoxFit.cover,
                 ),
-                const SizedBox(height: 24),
-                const Text('WhisperChat',
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text(
-                  'End-to-End Encrypted • Private • Secure',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.colorScheme.secondary,
-                    letterSpacing: 0.5,
-                  ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'WhisperChat',
+                style: TextStyle(
+                  fontFamily: 'serif',
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFD8B48C),
+                  letterSpacing: 1.0,
                 ),
-                const SizedBox(height: 48),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Chat Privately. Connect Securely.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF8FA1AE),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 48),
 
-                // Card
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: _isLoading
-                        ? _buildLoading()
-                        : _step == 'phone'
-                            ? _buildPhoneStep(theme)
-                            : _buildOtpStep(theme),
-                  ),
+              // Card
+              Card(
+                color: const Color(0xFF171B30),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: Colors.white.withOpacity(0.05)),
                 ),
-              ],
-            ),
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: _isLoading
+                      ? _buildLoading()
+                      : _step == 'phone'
+                          ? _buildPhoneStep(theme)
+                          : _buildOtpStep(theme),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -179,13 +186,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoading() {
-    return Column(
+    return const Column(
       children: [
-        const SizedBox(height: 8),
-        const CircularProgressIndicator(),
-        const SizedBox(height: 24),
-        Text(_loadingMsg, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
+        CircularProgressIndicator(color: Color(0xFFD8B48C)),
+        SizedBox(height: 24),
+        Text('Loading...', style: TextStyle(color: Colors.white70, fontSize: 13)),
+        SizedBox(height: 8),
       ],
     );
   }
@@ -194,35 +201,39 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Enter Your Phone Number',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          'Enter Your Phone Number',
+          style: TextStyle(fontFamily: 'serif', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         const SizedBox(height: 8),
         const Text(
           'We will send you a one-time verification code via SMS.',
-          style: TextStyle(fontSize: 12, color: Colors.white54),
+          style: TextStyle(fontSize: 12, color: Color(0xFF8FA1AE)),
         ),
         const SizedBox(height: 24),
         TextField(
           controller: _phoneCtrl,
           keyboardType: TextInputType.phone,
-          style: const TextStyle(fontSize: 18, letterSpacing: 1),
+          style: const TextStyle(fontSize: 18, letterSpacing: 1, color: Colors.white),
           decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.phone),
+            prefixIcon: Icon(Icons.phone, color: Color(0xFF8FA1AE)),
             labelText: 'Phone Number',
-            hintText: '+91 98765 43210',
           ),
         ),
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: _sendOtp,
           style: ElevatedButton.styleFrom(
-            backgroundColor: theme.colorScheme.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFFD8B48C),
+            foregroundColor: const Color(0xFF0E1120),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
           ),
-          child: const Text('Send Verification Code',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          child: const Text(
+            'Send Verification Code',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
         ),
       ],
     );
@@ -232,19 +243,21 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Enter Verification Code',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text(
+          'Enter Verification Code',
+          style: TextStyle(fontFamily: 'serif', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         const SizedBox(height: 8),
         Text(
           'A 6-digit code has been sent to ${_phoneCtrl.text.trim()}.',
-          style: const TextStyle(fontSize: 12, color: Colors.white54),
+          style: const TextStyle(fontSize: 12, color: Color(0xFF8FA1AE)),
         ),
         const SizedBox(height: 24),
         TextField(
           controller: _otpCtrl,
           keyboardType: TextInputType.number,
           maxLength: 6,
-          style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold, color: Colors.white),
           textAlign: TextAlign.center,
           decoration: const InputDecoration(
             counterText: '',
@@ -255,18 +268,21 @@ class _LoginScreenState extends State<LoginScreen> {
         ElevatedButton(
           onPressed: _verifyOtp,
           style: ElevatedButton.styleFrom(
-            backgroundColor: theme.colorScheme.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFFD8B48C),
+            foregroundColor: const Color(0xFF0E1120),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
           ),
-          child: const Text('Verify & Sign In',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          child: const Text(
+            'Verify & Sign In',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
         ),
         const SizedBox(height: 12),
         TextButton(
           onPressed: () => setState(() => _step = 'phone'),
-          child: const Text('Change Number', style: TextStyle(color: Colors.white54)),
+          child: const Text('Change Number', style: TextStyle(color: Color(0xFF8FA1AE))),
         ),
       ],
     );

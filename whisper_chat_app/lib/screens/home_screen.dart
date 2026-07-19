@@ -162,19 +162,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0E1120),
+      drawer: _buildDrawer(theme),
       appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu, color: Color(0xFFD8B48C)),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Column(
           children: [
-            const Text('WhisperChat'),
+            const Text(
+              'WhisperChat',
+              style: TextStyle(
+                fontFamily: 'serif',
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
             Text(
               _myPhone,
-              style: TextStyle(fontSize: 11, color: theme.colorScheme.secondary),
+              style: const TextStyle(fontSize: 11, color: Color(0xFF8FA1AE)),
             ),
           ],
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: theme.colorScheme.primary,
+          indicatorColor: const Color(0xFFD8B48C),
+          labelColor: const Color(0xFFD8B48C),
+          unselectedLabelColor: const Color(0xFF8FA1AE),
+          indicatorSize: TabBarIndicatorSize.tab,
           tabs: [
             const Tab(text: 'Chats'),
             Tab(
@@ -185,14 +203,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   if (_requests.isNotEmpty) ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.error,
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFD8B48C),
                         shape: BoxShape.circle,
                       ),
                       child: Text(
                         '${_requests.length}',
-                        style: const TextStyle(fontSize: 10, color: Colors.white),
+                        style: const TextStyle(fontSize: 10, color: Color(0xFF0E1120), fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -201,41 +219,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ],
         ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (val) {
-              if (val == 'logout') {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Sign Out'),
-                    content: const Text(
-                      'Signing out will delete all your local messages and E2EE keys. Your account will remain active on WhisperChat.',
-                    ),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _handleLogout();
-                        },
-                        child: const Text('Sign Out'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'logout', child: Text('Sign Out')),
-            ],
-          ),
-        ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFD8B48C)))
           : TabBarView(
               controller: _tabController,
               children: [
@@ -245,25 +231,162 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddContactDialog,
-        backgroundColor: theme.colorScheme.primary,
-        child: const Icon(Icons.person_add, color: Colors.white),
+        backgroundColor: const Color(0xFFD8B48C),
+        foregroundColor: const Color(0xFF0E1120),
+        child: const Icon(Icons.person_add),
+      ),
+    );
+  }
+
+  Widget _buildDrawer(ThemeData theme) {
+    return Drawer(
+      backgroundColor: const Color(0xFF0E1120),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Drawer Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 54,
+                      height: 54,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'WhisperChat',
+                          style: TextStyle(
+                            fontFamily: 'serif',
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(
+                              _myPhone,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF8FA1AE),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: Color(0xFFD8B48C),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: Colors.white10, height: 1),
+            const SizedBox(height: 12),
+            // Menu Items
+            _buildDrawerItem(Icons.group_outlined, 'New Group'),
+            _buildDrawerItem(Icons.contacts_outlined, 'Contacts'),
+            _buildDrawerItem(Icons.archive_outlined, 'Archived Chats'),
+            _buildDrawerItem(Icons.star_outline, 'Starred Messages'),
+            _buildDrawerItem(Icons.settings_outlined, 'Settings'),
+            _buildDrawerItem(Icons.lock_outline, 'Privacy & Security'),
+            _buildDrawerItem(Icons.help_outline, 'Help & Support'),
+            _buildDrawerItem(Icons.info_outline, 'About WhisperChat'),
+            const Spacer(),
+            const Divider(color: Colors.white10, height: 1),
+            _buildDrawerItem(
+              Icons.logout,
+              'Log Out',
+              textColor: const Color(0xFFD8B48C),
+              iconColor: const Color(0xFFD8B48C),
+              onTap: () {
+                Navigator.pop(context); // Close Drawer
+                _confirmSignOut();
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String title, {Color? textColor, Color? iconColor, VoidCallback? onTap}) {
+    return ListTile(
+      leading: Icon(icon, color: iconColor ?? const Color(0xFF8FA1AE), size: 22),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: textColor ?? Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap ?? () {},
+      horizontalTitleGap: 8,
+    );
+  }
+
+  void _confirmSignOut() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF171B30),
+        title: const Text('Sign Out', style: TextStyle(fontFamily: 'serif')),
+        content: const Text(
+          'Signing out will delete all your local messages and E2EE keys. Your account will remain active on WhisperChat.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF8FA1AE))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD8B48C),
+              foregroundColor: const Color(0xFF0E1120),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _handleLogout();
+            },
+            child: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildChatsTab(ThemeData theme) {
     if (_chats.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 52, color: Colors.white12),
-            const SizedBox(height: 16),
-            const Text('No chats yet', style: TextStyle(color: Colors.white38)),
-            const SizedBox(height: 8),
-            const Text(
+            Icon(Icons.chat_bubble_outline, size: 52, color: Color(0xFF8FA1AE)),
+            SizedBox(height: 16),
+            Text('No chats yet', style: TextStyle(color: Color(0xFF8FA1AE))),
+            SizedBox(height: 8),
+            Text(
               'Tap the + button to add a contact by phone number.',
-              style: TextStyle(fontSize: 12, color: Colors.white24),
+              style: TextStyle(fontSize: 12, color: Color(0xFF49566B)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -273,6 +396,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     return RefreshIndicator(
       onRefresh: _loadData,
+      color: const Color(0xFFD8B48C),
+      backgroundColor: const Color(0xFF171B30),
       child: ListView.separated(
         itemCount: _chats.length,
         separatorBuilder: (_, __) => const Divider(height: 1, color: Colors.white10),
@@ -287,14 +412,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               children: [
                 CircleAvatar(
                   radius: 26,
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.15),
+                  backgroundColor: const Color(0xFFD8B48C),
                   child: Text(
                     thread.contactPhone.isNotEmpty
                         ? thread.contactPhone.substring(
                             thread.contactPhone.length - 2)
                         : '?',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
+                    style: const TextStyle(
+                      color: Color(0xFF0E1120),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -307,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: thread.isOnline ? Colors.teal : Colors.grey,
+                      color: thread.isOnline ? const Color(0xFFD8B48C) : Colors.grey,
                       shape: BoxShape.circle,
                       border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
                     ),
@@ -317,21 +442,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             title: Text(
               thread.contactPhone,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
             ),
             subtitle: Row(
               children: [
                 if (isAudio) ...[
-                  const Icon(Icons.mic, size: 13, color: Colors.teal),
+                  const Icon(Icons.mic, size: 13, color: Color(0xFFD8B48C)),
                   const SizedBox(width: 4),
-                  const Text('Voice Note', style: TextStyle(color: Colors.teal, fontSize: 12)),
+                  const Text('Voice Note', style: TextStyle(color: Color(0xFFD8B48C), fontSize: 12)),
                 ] else ...[
                   Expanded(
                     child: Text(
                       lastMsg?.encryptedPayload ?? 'Tap to start chatting',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Colors.white54),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF8FA1AE)),
                     ),
                   ),
                 ],
@@ -339,14 +464,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             trailing: thread.unreadCount > 0
                 ? Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      shape: BoxShape.circle,
+                      color: const Color(0xFFD8B48C),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '${thread.unreadCount}',
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF0E1120),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   )
                 : null,
@@ -372,9 +501,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.person_outline, size: 52, color: Colors.white12),
+            Icon(Icons.person_outline, size: 52, color: Color(0xFF8FA1AE)),
             SizedBox(height: 16),
-            Text('No pending requests', style: TextStyle(color: Colors.white38)),
+            Text('No pending requests', style: TextStyle(color: Color(0xFF8FA1AE))),
           ],
         ),
       );
@@ -390,24 +519,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: const Color(0xFF171B30),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: theme.colorScheme.secondary.withOpacity(0.15),
-                  child: Icon(Icons.person, color: theme.colorScheme.secondary),
+                  backgroundColor: const Color(0xFFD8B48C),
+                  child: Text(
+                    phone.isNotEmpty ? phone.substring(phone.length - 2) : '?',
+                    style: const TextStyle(color: Color(0xFF0E1120), fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(phone,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 14)),
-                      const Text('Wants to connect securely with you',
-                          style: TextStyle(fontSize: 11, color: Colors.white54)),
+                      Text(phone, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white)),
+                      const Text('Wants to connect securely with you', style: TextStyle(fontSize: 11, color: Color(0xFF8FA1AE))),
                     ],
                   ),
                 ),
@@ -419,6 +549,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     await firebase.declineFriendRequest(docId);
                   },
                 ),
+                const SizedBox(width: 8),
                 // Accept
                 ElevatedButton(
                   onPressed: () async {
@@ -428,17 +559,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Now connected with $phone!'),
-                        backgroundColor: Colors.teal,
+                        backgroundColor: const Color(0xFFD8B48C),
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFFD8B48C),
+                    foregroundColor: const Color(0xFF0E1120),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
                   ),
-                  child: const Text('Accept', style: TextStyle(fontSize: 13)),
+                  child: const Text('Accept', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

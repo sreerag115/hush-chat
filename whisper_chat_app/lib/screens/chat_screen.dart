@@ -167,31 +167,30 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
-
-  // ── Build ────────────────────────────────────────────────────────────────
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final firebase = Provider.of<FirebaseService>(context, listen: false);
     final myUid = firebase.myUid ?? '';
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0E1120),
       appBar: AppBar(
         titleSpacing: 0,
+        backgroundColor: const Color(0xFF0E1120),
         title: Row(
           children: [
             CircleAvatar(
-              radius: 20,
-              backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
+              radius: 18,
+              backgroundColor: const Color(0xFFD8B48C),
               child: Text(
                 widget.thread.contactPhone.length >= 2
                     ? widget.thread.contactPhone.substring(
                         widget.thread.contactPhone.length - 2)
                     : '?',
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
+                style: const TextStyle(
+                  color: Color(0xFF0E1120),
                   fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
               ),
             ),
@@ -200,13 +199,15 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.thread.contactPhone,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text(
+                    widget.thread.contactPhone,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
                   Text(
                     widget.thread.isOnline ? 'Online' : 'Offline',
                     style: TextStyle(
                       fontSize: 11,
-                      color: widget.thread.isOnline ? Colors.teal : Colors.grey,
+                      color: widget.thread.isOnline ? const Color(0xFFD8B48C) : Colors.grey,
                     ),
                   ),
                 ],
@@ -216,12 +217,12 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.phone),
+            icon: const Icon(Icons.phone, color: Color(0xFFD8B48C)),
             onPressed: () => _call(false),
             tooltip: 'Voice Call',
           ),
           IconButton(
-            icon: const Icon(Icons.videocam),
+            icon: const Icon(Icons.videocam, color: Color(0xFFD8B48C)),
             onPressed: () => _call(true),
             tooltip: 'Video Call',
           ),
@@ -232,16 +233,16 @@ class _ChatScreenState extends State<ChatScreen> {
           // E2EE banner
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-            color: Colors.teal.withOpacity(0.07),
-            child: Row(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            color: const Color(0xFFD8B48C).withOpacity(0.05),
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.lock, size: 11, color: theme.colorScheme.secondary),
-                const SizedBox(width: 6),
-                const Text(
+                Icon(Icons.lock, size: 12, color: Color(0xFFD8B48C)),
+                SizedBox(width: 6),
+                Text(
                   'Messages are End-to-End Encrypted',
-                  style: TextStyle(fontSize: 11, color: Colors.white38),
+                  style: TextStyle(fontSize: 11, color: Color(0xFF8FA1AE)),
                 ),
               ],
             ),
@@ -277,24 +278,29 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         decoration: BoxDecoration(
           color: isMe
-              ? theme.colorScheme.primary.withOpacity(0.85)
-              : const Color(0xFF1E293B),
+              ? const Color(0xFF49566B)
+              : const Color(0xFF171B30),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
             bottomLeft: Radius.circular(isMe ? 18 : 4),
             bottomRight: Radius.circular(isMe ? 4 : 18),
           ),
+          border: Border.all(
+            color: isMe ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.02),
+          ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Message body
             if (msg.mediaType == 'audio') ...[
               _buildVoiceNotePlayer(msg, isMe, theme),
             ] else ...[
-              Text(msg.encryptedPayload,
-                  style: const TextStyle(color: Colors.white, fontSize: 14)),
+              Text(
+                msg.encryptedPayload,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
             ],
             const SizedBox(height: 4),
             // Timestamp + status
@@ -305,14 +311,14 @@ class _ChatScreenState extends State<ChatScreen> {
                 Text(
                   DateFormat('HH:mm').format(
                       DateTime.fromMillisecondsSinceEpoch(msg.timestamp)),
-                  style: const TextStyle(fontSize: 10, color: Colors.white38),
+                  style: const TextStyle(fontSize: 10, color: Color(0xFF8FA1AE)),
                 ),
                 if (isMe) ...[
                   const SizedBox(width: 4),
                   Icon(
                     msg.status == 'read' ? Icons.done_all : Icons.done,
                     size: 13,
-                    color: msg.status == 'read' ? Colors.cyan : Colors.white30,
+                    color: msg.status == 'read' ? const Color(0xFFD8B48C) : const Color(0xFF8FA1AE),
                   ),
                 ],
               ],
@@ -337,7 +343,7 @@ class _ChatScreenState extends State<ChatScreen> {
           constraints: const BoxConstraints(),
           icon: Icon(
             isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-            color: isMe ? Colors.white : theme.colorScheme.secondary,
+            color: isMe ? Colors.white : const Color(0xFFD8B48C),
             size: 36,
           ),
           onPressed: () => _playVoiceNote(msg),
@@ -352,7 +358,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: isMe ? Colors.white70 : theme.colorScheme.secondary,
+                  color: isMe ? Colors.white70 : const Color(0xFFD8B48C),
                 ),
               ),
               const SizedBox(height: 4),
@@ -363,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   minHeight: 3,
                   backgroundColor: Colors.white24,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    isMe ? Colors.white70 : theme.colorScheme.secondary,
+                    isMe ? Colors.white70 : const Color(0xFFD8B48C),
                   ),
                 ),
               ),
@@ -377,20 +383,21 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildInputBar(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 20, top: 8),
-      color: const Color(0xFF0F172A),
+      color: const Color(0xFF0E1120),
       child: Row(
         children: [
           // Text input
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF171B30),
                 borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withOpacity(0.05)),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: _isRecording
-                  ? Row(
-                      children: const [
+                  ? const Row(
+                      children: [
                         Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 14),
                         SizedBox(width: 8),
                         Text('Recording...', style: TextStyle(color: Colors.white70)),
@@ -412,7 +419,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.send, color: theme.colorScheme.primary),
+                          icon: const Icon(Icons.send, color: Color(0xFFD8B48C)),
                           onPressed: _sendText,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -428,13 +435,13 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: theme.colorScheme.primary.withOpacity(0.4),
+                color: Color(0xFFD8B48C),
               ),
               child: const Icon(
                 Icons.mic,
-                color: Colors.white54,
+                color: Color(0xFF0E1120),
                 size: 22,
               ),
             ),

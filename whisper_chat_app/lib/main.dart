@@ -115,32 +115,36 @@ class HushApp extends StatelessWidget {
     return ThemeData(
       brightness: Brightness.dark,
       useMaterial3: true,
+      fontFamily: 'sans-serif',
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xFF6366F1),
-        secondary: Color(0xFF14B8A6),
-        surface: Color(0xFF0F172A),
-        background: Color(0xFF020617),
+        primary: Color(0xFFD8B48C),
+        secondary: Color(0xFF8FA1AE),
+        surface: Color(0xFF171B30),
+        background: Color(0xFF0E1120),
         error: Color(0xFFEF4444),
       ),
-      scaffoldBackgroundColor: const Color(0xFF020617),
+      scaffoldBackgroundColor: const Color(0xFF0E1120),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF0F172A),
+        backgroundColor: Color(0xFF0E1120),
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
+          fontFamily: 'serif',
           fontWeight: FontWeight.bold,
-          fontSize: 20,
+          fontSize: 22,
           color: Colors.white,
+          letterSpacing: 0.5,
         ),
+        iconTheme: IconThemeData(color: Color(0xFFD8B48C)),
       ),
       cardTheme: CardThemeData(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF171B30),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 4,
+        elevation: 2,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1E293B),
+        fillColor: const Color(0xFF171B30),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -151,8 +155,10 @@ class HushApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFD8B48C), width: 1.5),
         ),
+        labelStyle: const TextStyle(color: Color(0xFF8FA1AE)),
+        hintStyle: const TextStyle(color: Colors.white30),
       ),
     );
   }
@@ -164,42 +170,47 @@ class _SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020617),
+      backgroundColor: const Color(0xFF0E1120),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(32),
               child: Image.asset(
                 'assets/images/logo.png',
-                width: 80,
-                height: 80,
+                width: 130,
+                height: 130,
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             const Text(
-              'Hush',
+              'WhisperChat',
               style: TextStyle(
-                fontSize: 32,
+                fontFamily: 'serif',
+                fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 2,
+                color: Color(0xFFD8B48C),
+                letterSpacing: 1.5,
               ),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Private. Encrypted. Yours.',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
+              'Chat Privately. Connect Securely.',
+              style: TextStyle(
+                color: Color(0xFF8FA1AE),
+                fontSize: 14,
+                letterSpacing: 0.5,
+              ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 54),
             const SizedBox(
-              width: 24,
-              height: 24,
+              width: 28,
+              height: 28,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: Color(0xFF6366F1),
+                color: Color(0xFFD8B48C),
               ),
             ),
           ],
