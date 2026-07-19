@@ -12,10 +12,11 @@ import '../models/chat_thread.dart';
 import '../models/message.dart';
 import 'crypto_service.dart';
 import 'database_service.dart';
+import 'package:flutter/widgets.dart';
 import 'secure_storage_service.dart';
 import 'notification_service.dart';
 
-class FirebaseService extends ChangeNotifier {
+class FirebaseService extends ChangeNotifier with WidgetsBindingObserver {
   static final FirebaseService _instance = FirebaseService._internal();
   factory FirebaseService() => _instance;
   FirebaseService._internal();
@@ -30,12 +31,32 @@ class FirebaseService extends ChangeNotifier {
 
   // Active Firestore listeners
   final Map<String, StreamSubscription<QuerySnapshot>> _messageListeners = {};
+  final Map<String, StreamSubscription<DocumentSnapshot>> _presenceListeners = {};
   StreamSubscription<QuerySnapshot>? _requestListener;
 
   User? get currentUser => _auth.currentUser;
   String? get myUid => _auth.currentUser?.uid;
 
   String? activeChatUid;
+  bool _observerInitialized = false;
+
+  void initLifecycleObserver() {
+    if (_observerInitialized) return;
+    WidgetsBinding.instance.addObserver(this);
+    _observerInitialized = true;
+    setPresence(true);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      setPresence(true);
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      setPresence(false);
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // PHONE AUTH
@@ -103,10 +124,58 @@ class FirebaseService extends ChangeNotifier {
 
   Future<void> setPresence(bool isOnline) async {
     if (myUid == null) return;
-    await _db.collection('users').doc(myUid).update({
-      'isOnline': isOnline,
-      'lastSeen': FieldValue.serverTimestamp(),
+    try {
+      await _db.collection('users').doc(myUid).update({
+        'isOnline': isOnline,
+        'lastSeen': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error updating presence: $e');
+    }
+  }
+
+  void listenToPresence(String contactUid, {required void Function(bool isOnline, int lastSeen) onUpdate}) {
+    _presenceListeners[contactUid]?.cancel();
+    _presenceListeners[contactUid] = _db.collection('users').doc(contactUid).snapshots().listen((doc) {
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          final isOnline = data['isOnline'] as bool? ?? false;
+          final lastSeenTs = data['lastSeen'];
+          int lastSeen = 0;
+          if (lastSeenTs is Timestamp) {
+            lastSeen = lastSeenTs.millisecondsSinceEpoch;
+          } else if (lastSeenTs is int) {
+            lastSeen = lastSeenTs;
+          }
+          _localDb.updateThreadPresence(contactUid, isOnline, lastSeen);
+          onUpdate(isOnline, lastSeen);
+          notifyListeners();
+        }
+      }
     });
+  }
+
+  void stopListeningToPresence(String contactUid) {
+    _presenceListeners[contactUid]?.cancel();
+    _presenceListeners.remove(contactUid);
+  }
+
+  Future<void> markMessagesAsReadInFirestore(String contactUid) async {
+    final uid = myUid;
+    if (uid == null) return;
+    final connectionId = _buildConnectionId(uid, contactUid);
+    final snap = await _db
+        .collection('conversations')
+        .doc(connectionId)
+        .collection('messages')
+        .where('receiverUid', isEqualTo: uid)
+        .where('status', isNotEqualTo: 'read')
+        .get();
+
+    for (final doc in snap.docs) {
+      await doc.reference.update({'status': 'read'});
+    }
   }
 
   Future<void> signOut() async {
@@ -420,6 +489,13 @@ class FirebaseService extends ChangeNotifier {
             }
           }
 
+          final statusToSet = (activeChatUid == contactUid) ? 'read' : 'delivered';
+          try {
+            await change.doc.reference.update({'status': statusToSet});
+          } catch (e) {
+            debugPrint("Error updating msg status: $e");
+          }
+
           final msg = Message(
             id: data['id'] as String,
             senderUid: senderUid,
@@ -430,7 +506,7 @@ class FirebaseService extends ChangeNotifier {
             mediaType: data['mediaType'] as String,
             mediaUrl: cachedLocalAudioPath, // Store local audio path in local DB
             timestamp: data['timestamp'] as int,
-            status: 'delivered',
+            status: statusToSet,
           );
 
           await _localDb.saveMessage(contactUid, msg);
@@ -442,6 +518,26 @@ class FirebaseService extends ChangeNotifier {
               title: msg.senderPhone.isNotEmpty ? msg.senderPhone : 'New Message',
               body: msg.mediaType == 'audio' ? '🎤 Voice Note' : msg.encryptedPayload,
             );
+          }
+        } else if (change.type == DocumentChangeType.modified) {
+          final data = change.doc.data()!;
+          final senderUid = data['senderUid'] as String;
+
+          if (senderUid == myUid) {
+            final newStatus = data['status'] as String? ?? 'sent';
+            await _localDb.updateMessageStatus(contactUid, data['id'] as String, newStatus);
+            final updatedMsg = Message(
+              id: data['id'] as String,
+              senderUid: senderUid,
+              receiverUid: data['receiverUid'] as String? ?? '',
+              senderPhone: data['senderPhone'] as String? ?? '',
+              receiverPhone: data['receiverPhone'] as String? ?? '',
+              encryptedPayload: '',
+              mediaType: data['mediaType'] as String? ?? 'text',
+              timestamp: data['timestamp'] as int? ?? 0,
+              status: newStatus,
+            );
+            onMessage(updatedMsg);
           }
         }
       }

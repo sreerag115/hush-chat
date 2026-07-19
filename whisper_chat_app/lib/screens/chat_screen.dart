@@ -33,14 +33,35 @@ class _ChatScreenState extends State<ChatScreen> {
   Duration _playPos = Duration.zero;
   Duration _playDur = Duration.zero;
 
+  bool _isOnline = false;
+  int _lastSeen = 0;
+
   @override
   void initState() {
     super.initState();
+    _isOnline = widget.thread.isOnline;
+    _lastSeen = widget.thread.lastSeen;
     _loadMessages();
 
-    // Listen for new real-time messages from Firebase
     final firebase = Provider.of<FirebaseService>(context, listen: false);
     firebase.activeChatUid = widget.thread.contactUid;
+    firebase.markMessagesAsReadInFirestore(widget.thread.contactUid);
+    _localDb.markMessagesAsRead(widget.thread.contactUid);
+
+    // Listen for contact presence in real-time
+    firebase.listenToPresence(
+      widget.thread.contactUid,
+      onUpdate: (isOnline, lastSeen) {
+        if (mounted) {
+          setState(() {
+            _isOnline = isOnline;
+            _lastSeen = lastSeen;
+          });
+        }
+      },
+    );
+
+    // Listen for new real-time messages from Firebase
     firebase.listenForMessages(
       widget.thread.contactUid,
       onMessage: (msg) {
@@ -67,6 +88,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     final firebase = Provider.of<FirebaseService>(context, listen: false);
     firebase.activeChatUid = null;
+    firebase.stopListeningToPresence(widget.thread.contactUid);
     firebase.stopListeningForMessages(widget.thread.contactUid);
     _audio.stopAudio();
     _msgCtrl.dispose();
@@ -206,10 +228,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                   Text(
-                    widget.thread.isOnline ? 'Online' : 'Offline',
+                    _isOnline
+                        ? 'Online'
+                        : (_lastSeen > 0
+                            ? 'Last seen ${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_lastSeen))}'
+                            : 'Offline'),
                     style: TextStyle(
                       fontSize: 11,
-                      color: widget.thread.isOnline ? const Color(0xFFD8B48C) : Colors.grey,
+                      color: _isOnline ? const Color(0xFFD8B48C) : Colors.grey,
                     ),
                   ),
                 ],
@@ -338,7 +364,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (isMe) ...[
                     const SizedBox(width: 4),
                     Icon(
-                      msg.status == 'read' ? Icons.done_all : Icons.done,
+                      msg.status == 'sent' ? Icons.done : Icons.done_all,
                       size: 13,
                       color: msg.status == 'read' ? const Color(0xFFD8B48C) : const Color(0xFF8FA1AE),
                     ),

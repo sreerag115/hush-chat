@@ -39,11 +39,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _tabController = TabController(length: 2, vsync: this);
     _loadData();
 
-    // Init notifications
+    // Init notifications & lifecycle presence observer
     NotificationService().init();
 
-    // Listen for incoming friend requests in real-time
     final firebase = Provider.of<FirebaseService>(context, listen: false);
+    firebase.initLifecycleObserver();
+
+    // Listen for incoming friend requests in real-time
     firebase.listenForFriendRequests((requests) {
       if (mounted) {
         setState(() => _requests = requests);
@@ -64,6 +66,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final name = await secure.getDisplayName() ?? 'User';
 
     final chats = await _localDb.getConnectedThreads();
+
+    for (final thread in chats) {
+      firebase.listenToPresence(
+        thread.contactUid,
+        onUpdate: (isOnline, lastSeen) {
+          if (mounted) {
+            _localDb.getConnectedThreads().then((updatedChats) {
+              if (mounted) setState(() => _chats = updatedChats);
+            });
+          }
+        },
+      );
+    }
 
     if (mounted) {
       setState(() {

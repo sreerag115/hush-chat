@@ -110,6 +110,43 @@ class DatabaseService {
     return ChatThread.fromMap(data);
   }
 
+  Future<void> updateThreadPresence(String contactUid, bool isOnline, int lastSeen) async {
+    final thread = await getThread(contactUid);
+    if (thread != null) {
+      await saveOrUpdateThread(thread.copyWith(isOnline: isOnline, lastSeen: lastSeen));
+    }
+  }
+
+  Future<void> updateMessageStatus(String contactUid, String messageId, String newStatus) async {
+    final box = await _getMessagesBox(contactUid);
+    final data = box.get(messageId);
+    if (data != null) {
+      final msg = Message.fromMap(data);
+      if (msg.status != newStatus) {
+        final updated = Message(
+          id: msg.id,
+          senderUid: msg.senderUid,
+          receiverUid: msg.receiverUid,
+          senderPhone: msg.senderPhone,
+          receiverPhone: msg.receiverPhone,
+          encryptedPayload: msg.encryptedPayload,
+          mediaType: msg.mediaType,
+          mediaUrl: msg.mediaUrl,
+          timestamp: msg.timestamp,
+          status: newStatus,
+          isStarred: msg.isStarred,
+        );
+        await box.put(messageId, updated.toMap());
+
+        // Update thread last message if applicable
+        final thread = await getThread(contactUid);
+        if (thread != null && thread.lastMessage?.id == messageId) {
+          await saveOrUpdateThread(thread.copyWith(lastMessage: updated));
+        }
+      }
+    }
+  }
+
   Future<void> deleteThread(String contactUid) async {
     final box = await _getThreadsBox();
     await box.delete(contactUid);
