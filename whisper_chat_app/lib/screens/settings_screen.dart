@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/firebase_service.dart';
 import '../services/secure_storage_service.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 import 'login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -211,9 +212,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: const TextStyle(color: Color(0xFF49566B), fontSize: 12)),
       trailing: const Icon(Icons.chevron_right, color: Color(0xFF49566B)),
-      onTap: () {
+      onTap: () async {
         if (title == 'Account Info') {
           _showChangeNameDialog();
+        } else if (title == 'Notifications') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('🔔 Notification sending in 3s! Minimize app now to see status bar banner...'),
+              backgroundColor: Color(0xFFD8B48C),
+              duration: Duration(seconds: 3),
+            ),
+          );
+          await Future.delayed(const Duration(seconds: 3));
+          await NotificationService().showManualNotification(
+            id: 999,
+            title: '🔒 WhisperChat Test Notification',
+            body: 'Incoming encrypted message test on status bar!',
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
