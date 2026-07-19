@@ -756,84 +756,227 @@ class _HomeScreenState extends State<HomeScreen> {
   // TAB 3: PROFILE VIEW
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // TAB 3: PROFILE VIEW (Matching User Mockup Cards & Preserving Settings / QR)
+  // ─────────────────────────────────────────────────────────────────────────
+
   Widget _buildProfileTab(ThemeData theme) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       children: [
-        // Profile Card
-        Card(
-          color: const Color(0xFF171B30),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.white.withOpacity(0.05))),
-          elevation: 0,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: const Color(0xFFD8B48C),
+        const SizedBox(height: 10),
+        // Centered Avatar with Golden Border Ring & Floating Pencil Badge
+        Center(
+          child: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFD8B48C),
+                  shape: BoxShape.circle,
+                ),
+                child: CircleAvatar(
+                  radius: 52,
+                  backgroundColor: const Color(0xFF0E1120),
                   child: Text(
                     _displayName.isNotEmpty ? _displayName.substring(0, 1).toUpperCase() : 'U',
-                    style: const TextStyle(fontSize: 28, color: Color(0xFF0E1120), fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 42, color: Color(0xFFD8B48C), fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_displayName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 4),
-                      Text(_myPhone, style: const TextStyle(fontSize: 13, color: Color(0xFF8FA1AE))),
-                    ],
+              ),
+              Positioned(
+                bottom: 2,
+                right: 2,
+                child: GestureDetector(
+                  onTap: _showProfileEditorDialog,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD8B48C),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF0E1120), width: 3),
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      size: 16,
+                      color: Color(0xFF0E1120),
+                    ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: Color(0xFFD8B48C)),
-                  onPressed: _showProfileEditorDialog,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // User Name & Edit Pencil
+        Center(
+          child: GestureDetector(
+            onTap: _showProfileEditorDialog,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _displayName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
+                const SizedBox(width: 8),
+                const Icon(Icons.edit, color: Color(0xFFD8B48C), size: 18),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 4),
 
-        // Quick Links
-        ListTile(
-          leading: const Icon(Icons.qr_code_2, color: Color(0xFFD8B48C)),
-          title: const Text('My QR Code', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          trailing: const Icon(Icons.chevron_right, color: Color(0xFF49566B)),
-          onTap: _showQrCodeDialog,
+        // Subtitle (Phone number / Account ID)
+        Center(
+          child: Text(
+            _myPhone,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF8FA1AE)),
+          ),
         ),
-        ListTile(
-          leading: const Icon(Icons.archive_outlined, color: Color(0xFF8FA1AE)),
-          title: const Text('Archived Chats', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          trailing: const Icon(Icons.chevron_right, color: Color(0xFF49566B)),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArchivedChatsScreen())).then((_) => _loadData()),
-        ),
-        ListTile(
-          leading: const Icon(Icons.star_outline, color: Color(0xFF8FA1AE)),
-          title: const Text('Starred Messages', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          trailing: const Icon(Icons.chevron_right, color: Color(0xFF49566B)),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StarredMessagesScreen())),
-        ),
-        ListTile(
-          leading: const Icon(Icons.settings_outlined, color: Color(0xFF8FA1AE)),
-          title: const Text('Settings', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          trailing: const Icon(Icons.chevron_right, color: Color(0xFF49566B)),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())).then((_) => _loadData()),
-        ),
-
-        const SizedBox(height: 24),
-        const Divider(color: Colors.white10),
         const SizedBox(height: 12),
 
-        ListTile(
-          leading: const Icon(Icons.logout, color: Colors.redAccent),
-          title: const Text('Log Out', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+        // Online Badge
+        Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.green.withOpacity(0.3)),
+            ),
+            child: const Text(
+              'Online',
+              style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 28),
+
+        // Cards Section matching mockup
+        _buildProfileCard(
+          icon: Icons.person,
+          label: 'Display Name',
+          value: _displayName,
+          onTap: _showProfileEditorDialog,
+        ),
+        _buildProfileCard(
+          icon: Icons.phone,
+          label: 'Phone Number',
+          value: _myPhone,
+        ),
+        _buildProfileCard(
+          icon: Icons.qr_code_2,
+          label: 'My QR Code',
+          value: 'Tap to view & share contact QR code',
+          onTap: _showQrCodeDialog,
+        ),
+        _buildProfileCard(
+          icon: Icons.settings,
+          label: 'Settings',
+          value: 'Privacy, security, data usage & preferences',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())).then((_) => _loadData()),
+        ),
+        _buildProfileCard(
+          icon: Icons.archive,
+          label: 'Archived Chats',
+          value: 'View and unarchive saved conversations',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArchivedChatsScreen())).then((_) => _loadData()),
+        ),
+        _buildProfileCard(
+          icon: Icons.star,
+          label: 'Starred Messages',
+          value: 'View bookmarked messages across chats',
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StarredMessagesScreen())),
+        ),
+        _buildProfileCard(
+          icon: Icons.calendar_today,
+          label: 'Joined',
+          value: 'July 12, 2026',
+        ),
+        const SizedBox(height: 12),
+        _buildProfileCard(
+          icon: Icons.logout,
+          label: 'Account Action',
+          value: 'Log Out & Clear Local Keys',
+          iconColor: Colors.redAccent,
+          valueColor: Colors.redAccent,
           onTap: _handleLogout,
         ),
+        const SizedBox(height: 20),
       ],
+    );
+  }
+
+  Widget _buildProfileCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    VoidCallback? onTap,
+    Color? iconColor,
+    Color? valueColor,
+  }) {
+    final effectiveIconColor = iconColor ?? const Color(0xFFD8B48C);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: const Color(0xFF141722),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withOpacity(0.04)),
+      ),
+      elevation: 0,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: effectiveIconColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: effectiveIconColor, size: 22),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF8FA1AE),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: valueColor ?? Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (onTap != null)
+                const Icon(Icons.chevron_right, color: Color(0xFF49566B), size: 20),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
