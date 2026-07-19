@@ -40,6 +40,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Listen for new real-time messages from Firebase
     final firebase = Provider.of<FirebaseService>(context, listen: false);
+    firebase.activeChatUid = widget.thread.contactUid;
     firebase.listenForMessages(
       widget.thread.contactUid,
       onMessage: (msg) {
@@ -65,6 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     final firebase = Provider.of<FirebaseService>(context, listen: false);
+    firebase.activeChatUid = null;
     firebase.stopListeningForMessages(widget.thread.contactUid);
     _audio.stopAudio();
     _msgCtrl.dispose();

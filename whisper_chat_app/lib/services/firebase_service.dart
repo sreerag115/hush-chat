@@ -13,6 +13,7 @@ import '../models/message.dart';
 import 'crypto_service.dart';
 import 'database_service.dart';
 import 'secure_storage_service.dart';
+import 'notification_service.dart';
 
 class FirebaseService extends ChangeNotifier {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -33,6 +34,8 @@ class FirebaseService extends ChangeNotifier {
 
   User? get currentUser => _auth.currentUser;
   String? get myUid => _auth.currentUser?.uid;
+
+  String? activeChatUid;
 
   // ─────────────────────────────────────────────────────────────────────────
   // PHONE AUTH
@@ -432,6 +435,14 @@ class FirebaseService extends ChangeNotifier {
 
           await _localDb.saveMessage(contactUid, msg);
           onMessage(msg);
+
+          if (activeChatUid != contactUid) {
+            await NotificationService().showManualNotification(
+              id: msg.id.hashCode,
+              title: msg.senderPhone.isNotEmpty ? msg.senderPhone : 'New Message',
+              body: msg.mediaType == 'audio' ? '🎤 Voice Note' : msg.encryptedPayload,
+            );
+          }
         }
       }
     });

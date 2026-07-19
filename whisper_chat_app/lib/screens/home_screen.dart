@@ -13,6 +13,7 @@ import 'new_group_screen.dart';
 import 'archived_chats_screen.dart';
 import 'starred_messages_screen.dart';
 import 'settings_screen.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,6 +38,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadData();
+
+    // Init notifications
+    NotificationService().init();
 
     // Listen for incoming friend requests in real-time
     final firebase = Provider.of<FirebaseService>(context, listen: false);

@@ -40,6 +40,10 @@ dependencies:
   permission_handler: ^11.3.0
   provider: ^6.1.1
   phone_numbers_parser: ^8.1.0
+  
+  # Notifications
+  firebase_messaging: any
+  flutter_local_notifications: any
 
 dev_dependencies:
   flutter_test:
