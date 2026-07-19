@@ -19,8 +19,9 @@ class FirebaseService extends ChangeNotifier {
   factory FirebaseService() => _instance;
   FirebaseService._internal();
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  // Lazy getters — only accessed after Firebase.initializeApp() completes
+  FirebaseAuth get _auth => FirebaseAuth.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   final CryptoService _crypto = CryptoService();
   final DatabaseService _localDb = DatabaseService();

@@ -26,10 +26,9 @@ class CryptoService {
 
   /// Helper to convert private key bytes to a Base64 string
   Future<String> encodePrivateKey(SimpleKeyPair keyPair) async {
-    final privateKey = await keyPair.extract();
-    final bytes = await privateKey.extractKeyPairData();
-    // Return private key bytes
-    return base64Encode(bytes.privateKeyBytes);
+    final keyPairData = await keyPair.extract();
+    final privateKeyBytes = await keyPairData.extractPrivateKeyBytes();
+    return base64Encode(privateKeyBytes);
   }
 
   /// Reconstruct KeyPair from stored Base64 strings

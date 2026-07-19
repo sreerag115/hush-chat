@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/chat_thread.dart';
+import '../services/crypto_service.dart';
 import '../services/database_service.dart';
 import '../services/firebase_service.dart';
 import 'chat_screen.dart';

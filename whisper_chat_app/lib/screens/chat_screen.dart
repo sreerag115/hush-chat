@@ -108,33 +108,24 @@ class _ChatScreenState extends State<ChatScreen> {
     _loadMessages();
   }
 
-  // ── Voice Notes ─────────────────────────────────────────────────────────
+  // ── Voice Notes (disabled — requires Firebase Storage paid plan) ──────────
 
-  Future<void> _startRecording() async {
-    try {
-      await _audio.startRecording();
-      if (mounted) setState(() => _isRecording = true);
-    } catch (e) {
-      _showSnack('Microphone permission denied');
-    }
-  }
-
-  Future<void> _stopAndSend() async {
-    if (mounted) setState(() => _isRecording = false);
-
-    final audioFile = await _audio.stopRecording();
-    if (audioFile == null) return;
-
-    _showSnack('Encrypting & sending voice note...');
-
-    final firebase = Provider.of<FirebaseService>(context, listen: false);
-    await firebase.sendMessage(
-      toUid: widget.thread.contactUid,
-      text: '[Voice Note]',
-      mediaType: 'audio',
-      audioFile: audioFile,
+  void _voiceNoteComingSoon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.mic_off, color: Colors.white70, size: 16),
+            SizedBox(width: 8),
+            Text('Voice notes coming soon (requires Storage upgrade)'),
+          ],
+        ),
+        backgroundColor: const Color(0xFF1E293B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
     );
-    _loadMessages();
   }
 
   Future<void> _playVoiceNote(Message msg) async {
@@ -431,22 +422,19 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          // Mic button (hold to record)
+          // Mic button (disabled — voice notes require Firebase Storage)
           GestureDetector(
-            onLongPress: _startRecording,
-            onLongPressUp: _stopAndSend,
+            onTap: _voiceNoteComingSoon,
             child: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _isRecording
-                    ? Colors.redAccent
-                    : theme.colorScheme.primary,
+                color: theme.colorScheme.primary.withOpacity(0.4),
               ),
-              child: Icon(
-                _isRecording ? Icons.stop : Icons.mic,
-                color: Colors.white,
+              child: const Icon(
+                Icons.mic,
+                color: Colors.white54,
                 size: 22,
               ),
             ),
