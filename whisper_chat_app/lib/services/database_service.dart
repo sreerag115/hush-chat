@@ -42,13 +42,34 @@ class DatabaseService {
     final box = await _getThreadsBox();
     return box.values
         .map((d) => ChatThread.fromMap(d))
-        .where((t) => t.isConnected)
+        .where((t) => t.isConnected && !t.isArchived)
         .toList()
       ..sort((a, b) {
         final aT = a.lastMessage?.timestamp ?? 0;
         final bT = b.lastMessage?.timestamp ?? 0;
         return bT.compareTo(aT);
       });
+  }
+
+  Future<List<ChatThread>> getArchivedThreads() async {
+    final box = await _getThreadsBox();
+    return box.values
+        .map((d) => ChatThread.fromMap(d))
+        .where((t) => t.isConnected && t.isArchived)
+        .toList()
+      ..sort((a, b) {
+        final aT = a.lastMessage?.timestamp ?? 0;
+        final bT = b.lastMessage?.timestamp ?? 0;
+        return bT.compareTo(aT);
+      });
+  }
+
+  Future<void> toggleArchiveThread(String contactUid) async {
+    final thread = await getThread(contactUid);
+    if (thread != null) {
+      final updated = thread.copyWith(isArchived: !thread.isArchived);
+      await saveOrUpdateThread(updated);
+    }
   }
 
   Future<List<ChatThread>> getPendingReceivedThreads() async {
@@ -82,6 +103,45 @@ class DatabaseService {
   Future<void> deleteThread(String contactUid) async {
     final box = await _getThreadsBox();
     await box.delete(contactUid);
+  }
+
+  Future<void> toggleStarMessage(String contactUid, String messageId) async {
+    final box = await _getMessagesBox(contactUid);
+    final data = box.get(messageId);
+    if (data != null) {
+      final msg = Message.fromMap(data);
+      final updated = Message(
+        id: msg.id,
+        senderUid: msg.senderUid,
+        receiverUid: msg.receiverUid,
+        senderPhone: msg.senderPhone,
+        receiverPhone: msg.receiverPhone,
+        encryptedPayload: msg.encryptedPayload,
+        mediaType: msg.mediaType,
+        mediaUrl: msg.mediaUrl,
+        timestamp: msg.timestamp,
+        status: msg.status,
+        isStarred: !msg.isStarred,
+      );
+      await box.put(messageId, updated.toMap());
+    }
+  }
+
+  Future<List<Message>> getStarredMessages() async {
+    final threadsBox = await _getThreadsBox();
+    final List<Message> starred = [];
+    for (final threadMap in threadsBox.values) {
+      final thread = ChatThread.fromMap(threadMap);
+      final msgBox = await _getMessagesBox(thread.contactUid);
+      for (final msgMap in msgBox.values) {
+        final msg = Message.fromMap(msgMap);
+        if (msg.isStarred) {
+          starred.add(msg);
+        }
+      }
+    }
+    starred.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return starred;
   }
 
   // --- Messages ---

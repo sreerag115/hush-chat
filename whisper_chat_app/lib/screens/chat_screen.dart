@@ -265,65 +265,86 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _toggleStar(Message msg) async {
+    await _localDb.toggleStarMessage(widget.thread.contactUid, msg.id);
+    _loadMessages();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg.isStarred ? 'Message unstarred' : 'Message starred!'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: const Color(0xFFD8B48C),
+        ),
+      );
+    }
+  }
+
   Widget _buildMessageBubble(Message msg, String myUid, ThemeData theme) {
     final isMe = msg.senderUid == myUid;
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.72,
-        ),
-        decoration: BoxDecoration(
-          color: isMe
-              ? const Color(0xFF49566B)
-              : const Color(0xFF171B30),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(isMe ? 18 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 18),
+      child: GestureDetector(
+        onLongPress: () => _toggleStar(msg),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.72,
           ),
-          border: Border.all(
-            color: isMe ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.02),
+          decoration: BoxDecoration(
+            color: isMe
+                ? const Color(0xFF49566B)
+                : const Color(0xFF171B30),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(18),
+              topRight: const Radius.circular(18),
+              bottomLeft: Radius.circular(isMe ? 18 : 4),
+              bottomRight: Radius.circular(isMe ? 4 : 18),
+            ),
+            border: Border.all(
+              color: isMe ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.02),
+            ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // Message body
-            if (msg.mediaType == 'audio') ...[
-              _buildVoiceNotePlayer(msg, isMe, theme),
-            ] else ...[
-              Text(
-                msg.encryptedPayload,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Message body
+              if (msg.mediaType == 'audio') ...[
+                _buildVoiceNotePlayer(msg, isMe, theme),
+              ] else ...[
+                Text(
+                  msg.encryptedPayload,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
+              const SizedBox(height: 4),
+              // Timestamp + status
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (msg.isStarred) ...[
+                    const Icon(Icons.star, color: Color(0xFFD8B48C), size: 12),
+                    const SizedBox(width: 4),
+                  ],
+                  Text(
+                    DateFormat('HH:mm').format(
+                        DateTime.fromMillisecondsSinceEpoch(msg.timestamp)),
+                    style: const TextStyle(fontSize: 10, color: Color(0xFF8FA1AE)),
+                  ),
+                  if (isMe) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      msg.status == 'read' ? Icons.done_all : Icons.done,
+                      size: 13,
+                      color: msg.status == 'read' ? const Color(0xFFD8B48C) : const Color(0xFF8FA1AE),
+                    ),
+                  ],
+                ],
               ),
             ],
-            const SizedBox(height: 4),
-            // Timestamp + status
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  DateFormat('HH:mm').format(
-                      DateTime.fromMillisecondsSinceEpoch(msg.timestamp)),
-                  style: const TextStyle(fontSize: 10, color: Color(0xFF8FA1AE)),
-                ),
-                if (isMe) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    msg.status == 'read' ? Icons.done_all : Icons.done,
-                    size: 13,
-                    color: msg.status == 'read' ? const Color(0xFFD8B48C) : const Color(0xFF8FA1AE),
-                  ),
-                ],
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

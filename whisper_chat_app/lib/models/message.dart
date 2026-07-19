@@ -11,6 +11,7 @@ class Message {
   final String? mediaUrl;        // For E2EE voice notes: URL#mediaKey
   final int timestamp;
   final String status;           // 'sending', 'sent', 'delivered', 'read'
+  final bool isStarred;
 
   Message({
     required this.id,
@@ -23,6 +24,7 @@ class Message {
     this.mediaUrl,
     required this.timestamp,
     required this.status,
+    this.isStarred = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -37,6 +39,7 @@ class Message {
       'mediaUrl': mediaUrl,
       'timestamp': timestamp,
       'status': status,
+      'isStarred': isStarred,
     };
   }
 
@@ -52,6 +55,7 @@ class Message {
       mediaUrl: map['mediaUrl'] as String?,
       timestamp: map['timestamp'] as int,
       status: map['status'] as String,
+      isStarred: map['isStarred'] as bool? ?? false,
     );
   }
 

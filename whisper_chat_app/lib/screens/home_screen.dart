@@ -7,6 +7,10 @@ import '../services/database_service.dart';
 import '../services/firebase_service.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
+import 'contacts_screen.dart';
+import 'new_group_screen.dart';
+import 'archived_chats_screen.dart';
+import 'starred_messages_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -300,10 +304,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const Divider(color: Colors.white10, height: 1),
             const SizedBox(height: 12),
             // Menu Items
-            _buildDrawerItem(Icons.group_outlined, 'New Group'),
-            _buildDrawerItem(Icons.contacts_outlined, 'Contacts'),
-            _buildDrawerItem(Icons.archive_outlined, 'Archived Chats'),
-            _buildDrawerItem(Icons.star_outline, 'Starred Messages'),
+            _buildDrawerItem(
+              Icons.group_outlined,
+              'New Group',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const NewGroupScreen()));
+              },
+            ),
+            _buildDrawerItem(
+              Icons.contacts_outlined,
+              'Contacts',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ContactsScreen()));
+              },
+            ),
+            _buildDrawerItem(
+              Icons.archive_outlined,
+              'Archived Chats',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ArchivedChatsScreen())).then((_) => _loadData());
+              },
+            ),
+            _buildDrawerItem(
+              Icons.star_outline,
+              'Starred Messages',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const StarredMessagesScreen()));
+              },
+            ),
             _buildDrawerItem(Icons.settings_outlined, 'Settings'),
             _buildDrawerItem(Icons.lock_outline, 'Privacy & Security'),
             _buildDrawerItem(Icons.help_outline, 'Help & Support'),
@@ -406,89 +438,111 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final lastMsg = thread.lastMessage;
           final isAudio = lastMsg?.mediaType == 'audio';
 
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: const Color(0xFFD8B48C),
-                  child: Text(
-                    thread.contactPhone.isNotEmpty
-                        ? thread.contactPhone.substring(
-                            thread.contactPhone.length - 2)
-                        : '?',
-                    style: const TextStyle(
-                      color: Color(0xFF0E1120),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: thread.isOnline ? const Color(0xFFD8B48C) : Colors.grey,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
-                    ),
-                  ),
-                ),
-              ],
+          return Dismissible(
+            key: Key(thread.contactUid),
+            background: Container(
+              color: const Color(0xFFD8B48C),
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20),
+              child: const Icon(Icons.archive, color: Color(0xFF0E1120)),
             ),
-            title: Text(
-              thread.contactPhone,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
-            ),
-            subtitle: Row(
-              children: [
-                if (isAudio) ...[
-                  const Icon(Icons.mic, size: 13, color: Color(0xFFD8B48C)),
-                  const SizedBox(width: 4),
-                  const Text('Voice Note', style: TextStyle(color: Color(0xFFD8B48C), fontSize: 12)),
-                ] else ...[
-                  Expanded(
+            direction: DismissDirection.startToEnd,
+            onDismissed: (direction) async {
+              await _localDb.toggleArchiveThread(thread.contactUid);
+              _loadData();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Chat archived'),
+                    backgroundColor: Color(0xFFD8B48C),
+                  ),
+                );
+              }
+            },
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              leading: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: const Color(0xFFD8B48C),
                     child: Text(
-                      lastMsg?.encryptedPayload ?? 'Tap to start chatting',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF8FA1AE)),
+                      thread.contactPhone.isNotEmpty
+                          ? thread.contactPhone.substring(
+                              thread.contactPhone.length - 2)
+                          : '?',
+                      style: const TextStyle(
+                        color: Color(0xFF0E1120),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: thread.isOnline ? const Color(0xFFD8B48C) : Colors.grey,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
+                      ),
                     ),
                   ),
                 ],
-              ],
-            ),
-            trailing: thread.unreadCount > 0
-                ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD8B48C),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${thread.unreadCount}',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF0E1120),
-                        fontWeight: FontWeight.bold,
+              ),
+              title: Text(
+                thread.contactPhone,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
+              ),
+              subtitle: Row(
+                children: [
+                  if (isAudio) ...[
+                    const Icon(Icons.mic, size: 13, color: Color(0xFFD8B48C)),
+                    const SizedBox(width: 4),
+                    const Text('Voice Note', style: TextStyle(color: Color(0xFFD8B48C), fontSize: 12)),
+                  ] else ...[
+                    Expanded(
+                      child: Text(
+                        lastMsg?.encryptedPayload ?? 'Tap to start chatting',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF8FA1AE)),
                       ),
                     ),
-                  )
-                : null,
-            onTap: () async {
-              await _localDb.markMessagesAsRead(thread.contactUid);
-              _loadData();
-              if (mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
-                ).then((_) => _loadData());
-              }
-            },
+                  ],
+                ],
+              ),
+              trailing: thread.unreadCount > 0
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD8B48C),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${thread.unreadCount}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF0E1120),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : null,
+              onTap: () async {
+                await _localDb.markMessagesAsRead(thread.contactUid);
+                _loadData();
+                if (mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => ChatScreen(thread: thread)),
+                  ).then((_) => _loadData());
+                }
+              },
+            ),
           );
         },
       ),
