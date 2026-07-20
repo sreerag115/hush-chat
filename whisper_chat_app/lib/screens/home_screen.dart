@@ -50,6 +50,23 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() => _requests = requests);
       }
     });
+
+    // Start message listeners for ALL contacts so notifications work
+    // even when user is on HomeScreen (not inside a specific chat)
+    _startGlobalMessageListeners();
+  }
+
+  void _startGlobalMessageListeners() async {
+    final firebase = Provider.of<FirebaseService>(context, listen: false);
+    final chats = await _localDb.getConnectedThreads();
+    for (final thread in chats) {
+      firebase.listenForMessages(
+        thread.contactUid,
+        onMessage: (msg) {
+          _loadData(); // Refresh chat list when any new message arrives
+        },
+      );
+    }
   }
 
   Future<void> _loadData() async {

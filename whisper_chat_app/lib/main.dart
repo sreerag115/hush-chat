@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart' show Firebase, FirebaseOptions;
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,10 +12,27 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/call_screen.dart';
 
+/// Top-level background message handler for FCM.
+/// This MUST be a top-level function (not a class method).
+/// It runs in a separate isolate when the app is killed/background.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Ensure Firebase is initialized in the background isolate
+  await Firebase.initializeApp();
+  debugPrint('🔔 Background FCM message received: ${message.messageId}');
+  // The notification payload (title/body) from the Cloud Function
+  // is automatically displayed by Android's system notification tray.
+  // No additional code needed here — Android handles it natively.
+}
+
 // Call runApp() FIRST — no awaits before this.
 // Everything initializes inside the widget tree using FutureBuilder.
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register the background message handler BEFORE runApp
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   final webrtcService = WebRtcService();
   final firebaseService = FirebaseService();
 
