@@ -45,6 +45,10 @@ dependencies:
   firebase_messaging: any
   flutter_local_notifications: any
 
+  # FCM Push (direct from sender device)
+  googleapis_auth: ^1.4.0
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -54,4 +58,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/service-account.json
 

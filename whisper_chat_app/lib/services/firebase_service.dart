@@ -15,6 +15,7 @@ import 'database_service.dart';
 import 'package:flutter/widgets.dart';
 import 'secure_storage_service.dart';
 import 'notification_service.dart';
+import 'fcm_push_service.dart';
 
 class FirebaseService extends ChangeNotifier with WidgetsBindingObserver {
   static final FirebaseService _instance = FirebaseService._internal();
@@ -422,6 +423,15 @@ class FirebaseService extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     await _localDb.saveMessage(toUid, localMsg);
+
+    // Send direct FCM push notification to the receiver
+    // This runs completely free without Firebase Cloud Functions!
+    FcmPushService().sendPushNotification(
+      receiverUid: toUid,
+      senderPhone: myPhone ?? 'Unknown',
+      mediaType: mediaType,
+    );
+
     return localMsg;
   }
 
